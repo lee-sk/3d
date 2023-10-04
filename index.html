@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Cube in VR</title>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const xrButton = document.createElement('button');
+        const cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+        
+        // Set up XR
+        navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+            if (supported) {
+                xrButton.innerHTML = 'Enter VR';
+                xrButton.addEventListener('click', () => {
+                    enterVR();
+                });
+                document.body.appendChild(xrButton);
+            }
+        });
+        
+        // Initialize the scene
+        function init() {
+            camera.position.set(0, 1.6, 3);
+            scene.add(cube);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+        }
+        
+        // Enter VR
+        async function enterVR() {
+            const session = await navigator.xr.requestSession('immersive-vr');
+            xrButton.style.display = 'none';
+            session.updateRenderState({ baseLayer: new XRWebGLLayer(session, renderer) });
+            session.requestAnimationFrame(animate);
+        }
+        
+        // Animation loop
+        function animate(time, frame) {
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+            frame.session.requestAnimationFrame(animate);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
